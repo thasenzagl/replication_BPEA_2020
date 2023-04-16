@@ -1,0 +1,55 @@
+From: Enrique Batiz <Enrique.Batiz@postgrad.mbs.ac.uk>
+To: azzalini@stat.unipd.it
+Subject: Skew t programs in matlab
+Date: Wed, 23 Apr 2008 23:28:04 +0100
+X-Mailer: Lotus Domino Web Server Release 7.0.3 September 26, 2007             
+
+Dear Profesor Azzalini,
+
+ 
+
+I hereby send you all the programs that I made in Matlab to compute different statistics of your skew t distribution.
+
+I would like to tell you which are the additional features that you will find in these program codes:
+
+ 
+
+(1) I included the function "isempty" to add flexibility for the user
+
+(2) I included parameter constraints (i.e. the scale parameter must be a positive number; n must be an integer; degrees of freedom must take discrete positive values; n must be smaller than df in the skt_cumulants)
+
+(3) For the Multivariate Skew t distribution "pmskt", I use the multivariate cdf of the t distribution "mvtcdf" and the multivariate cdf of the normal distribution  "mvncdf". The functions "mvtcdf" and "mvncdf" are available in the Statistical Toolbox in Matlab. If the user does not have access to this feature, then one can easily substitute these functions for the functions provided by Genz,A. http://www.math.wsu.edu/faculty/genz/homepage  for matlab. Profesor Genz provides three different functions to compute the multivariate t (QSIMVT, QSCMVT, QSCMVTV) and six different functions to compute the multivariate normal (QSIMVN,QSIMVNV,QSILATMVNV, QSCMVN, QSCMVNV, QSCLATMVNV). All the functions provided by profesor Genz are publicly available.
+
+(4) All the matlab functions were made in the last available version of this software.
+
+ 
+
+The following table might be useful for you:
+"dskt.m" ---Density of the univariate skew t distribution---equivalent of your function "dst" in R
+"pskt.m" ---Distribution Function of the univariate skew t--equivalent of your function "pst" in R
+"qskt.m" ---Quantile of the univariate skew t distribution---equivalent of your function "qst" in R
+"rskt.m"  ---Random number generator--------------------equivalent of your function "rst" in R
+"skt_cumulants.m"--Cumulants of the skew t--------------equivalent of your function "skt_cumulants" in R
+"pmskt.m"---Multivariate Skew t distribution---------------equivalent of your function "pmt" in R
+
+I hope that this work is useful for other matlab skew-t users.
+
+ 
+
+Regards,
+
+ 
+
+Enrique
+
+[dskt.m  application/octet-stream (4.0KB)]
+
+[skt_cumulants.m  application/octet-stream (4.6KB)]
+
+[pmskt.m  application/octet-stream (3.5KB)]
+
+[pskt.m  application/octet-stream (4.3KB)]
+
+[qskt.m  application/octet-stream (5.3KB)]
+
+[rskt.m  application/octet-stream (4.1KB)]
