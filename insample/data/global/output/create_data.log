@@ -1,0 +1,402 @@
+----------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  D:\Dropbox\research\Projects\SP20_BPEA\code\data\global\output/create_data.log
+  log type:  text
+ opened on:  20 Jan 2020, 18:35:02
+
+. *** SETTINGS ***;
+. * Decide what to do;
+. local do_data = 0;
+
+.                 // =1: load OECD+BIS+GFD+survey data;
+> local do_export = 1;
+
+.         // =1: define variables and export to CSV;
+> 
+> * Export settings;
+. local dir_export = "output/csv";
+
+.                 // Folder to export CSV files for each country;
+> local sample_export = "1980q1,2018q4";
+
+.         // Sample to export;
+> local obsfrac_export = 0.7;
+
+.                         // Export only variables with at least this fraction of non-missing obs.;
+> 
+> * Sample settings specific to each country, if desired;
+. local sample_export_DEU = "1991q2,2018q4";
+
+.  // Germany;
+> 
+> *** END SETTINGS ***;
+. *** LOAD OECD+BIS+GFD+survey DATA ***;
+. if `do_data' == 1 {;
+.         do create_oecd_bis;
+.         do create_gfd;
+.         do create_surveys;
+.                 * Import VXO from FRED-QD data;
+.         cap confirm file "../us/output/fredqd.dta";
+.         if _rc !=0 {;
+.                 cd ../us;
+.                 do create_fredqd;
+.                 cd ../global;
+.         };
+.         use ../us/output/fredqd, clear;
+.         keep if fred_mnemonic_str=="VXOCLSx";
+.         keep time val;
+.         rename val VXO;
+.         merge 1:m time using output/global, nogen;
+.                 * Save;
+.         xtset geo time;
+.         compress;
+.         order geo geo_str time;
+.         save output/global, replace;
+.         };
+
+. *** DEFINE VARIABLES AND EXPORT DATA ***;
+. if `do_export' == 1 {;
+.         do define_vars;
+
+. # delimit ;
+delimiter now ;
+. * Define variables for export;
+. * MPM 2020-01-19;
+. use output/global, clear;
+
+. *** COMPUTE SPREADS ***;
+. gen TERMSPR = IRL_PC - GOVTYIELD_SHORT;
+(1,751 missing values generated)
+
+.  // Term spread;
+> 
+> gen IRL_PC_USA_temp = IRL_PC if geo_str=="USA";
+(3,552 missing values generated)
+
+. egen IRL_PC_USA = max(IRL_PC_USA_temp), by(time);
+(1176 missing values generated)
+
+.  // U.S. long-term rate;
+> drop IRL_PC_USA_temp;
+
+. gen YIELDSPRUS = IRL_PC - IRL_PC_USA;
+(1,260 missing values generated)
+
+.  // Spread vs. U.S.;
+> 
+> 
+> *** DROP VARIABLES FOR USA ***;
+. foreach v of varlist EXCH_USD YIELDSPRUS {;
+  2.         replace `v' = . if geo_str=="USA";
+  3. };
+(198 real changes made, 198 to missing)
+(198 real changes made, 198 to missing)
+
+. *** DROP OUTLIERS FOR NLD IN 2015q1-q3 ***;
+. foreach v of varlist CBD_USD ITV_ANNPCT_PC ?GSV_ANNPCT_PC {;
+  2.         replace `v' = . if tin(2015q1,2015q3) & geo_str=="NLD";
+  3. };
+(3 real changes made, 3 to missing)
+(3 real changes made, 3 to missing)
+(3 real changes made, 3 to missing)
+(3 real changes made, 3 to missing)
+
+. *** FIX UNITS OF BIS SERIES ***;
+. foreach v of varlist ?_?_M_USD_A {;
+  2.         replace `v' = 1e9*`v';
+  3.  // Transform from billions of USD into USD;
+> };
+(1,371 real changes made)
+(1,372 real changes made)
+(2,328 real changes made)
+(2,291 real changes made)
+(2,991 real changes made)
+(2,939 real changes made)
+
+. *** TRANSFORM VARIABLES TO STATIONARITY ***;
+. * Fraction of GDP;
+. foreach v of varlist CBD_USD ?_?_M_USD_A {;
+  2.         gen `v'_pctgdp = 100*`v'/GDP_USD_USD;
+  3. };
+(1,355 missing values generated)
+(2,451 missing values generated)
+(2,451 missing values generated)
+(1,653 missing values generated)
+(1,677 missing values generated)
+(1,267 missing values generated)
+(1,286 missing values generated)
+
+. * Log difference;
+. foreach v of varlist COMMCRB ET_PER EXCH_USD EXCHEB_IDX GDPV_USD_USD HRS_HOUR N_628 ODCNPI03_IXOBSA PGDP_IDX P
+> RMNTO01_IXOBSA SLRTTO01_IXOBSA SPASTT01_IXOB STOCKVOL TTRADE_RATIO ULC_IDX WSCNDW01_IXOBSA {;
+  2.         gen `v'_dlog = 100*log(`v'/L.`v');
+  3. };
+(123 missing values generated)
+(1,277 missing values generated)
+(1,386 missing values generated)
+(1,189 missing values generated)
+(1,273 missing values generated)
+(1,422 missing values generated)
+(954 missing values generated)
+(2,393 missing values generated)
+(1,273 missing values generated)
+(1,277 missing values generated)
+(1,430 missing values generated)
+(1,297 missing values generated)
+(1,602 missing values generated)
+(1,273 missing values generated)
+(1,570 missing values generated)
+(2,281 missing values generated)
+
+. * Difference;
+. foreach v of varlist CBD_USD_pctgdp DIVYIELD ?_?_M_USD_A_pctgdp IRS_PC PGDP_IDX_dlog UNR_PC {;
+  2.         gen `v'_d = D.`v';
+  3. };
+(1,369 missing values generated)
+(310 missing values generated)
+(2,464 missing values generated)
+(2,464 missing values generated)
+(1,666 missing values generated)
+(1,690 missing values generated)
+(1,280 missing values generated)
+(1,299 missing values generated)
+(1,401 missing values generated)
+(1,286 missing values generated)
+(1,327 missing values generated)
+
+. rename *_dlog_d *_d2log;
+
+. * From annualized percent growth to quarterly log growth;
+. foreach v of varlist C?V_ANNPCT_PC ITV_ANNPCT_PC ?GSV_ANNPCT_PC {;
+  2.         gen `v'_dlog = 100*log(1+`v'/400);
+  3. };
+(1,261 missing values generated)
+(1,261 missing values generated)
+(1,264 missing values generated)
+(1,264 missing values generated)
+(1,264 missing values generated)
+
+. *** KEEP SELECTED VARIABLES ***;
+. keep    geo geo_str time
+>                 CBD_USD_pctgdp_d
+>                 CGV_ANNPCT_PC_dlog
+>                 COMMCRB_dlog
+>                 CONSSENT
+>                 CPV_ANNPCT_PC_dlog
+>                 DIVYIELD_d
+>                 ECONSENT
+>                 ET_PER_dlog
+>                 EXCH_USD_dlog
+>                 EXCHEB_IDX_dlog
+>                 GDPV_USD_USD_dlog
+>                 H_A_M_USD_A_pctgdp_d
+>                 HRS_HOUR_dlog
+>                 IRS_PC_d
+>                 ITV_ANNPCT_PC_dlog
+>                 MGSV_ANNPCT_PC_dlog
+>                 N_628_dlog
+>                 ODCNPI03_IXOBSA_dlog
+>                 P_A_M_USD_A_pctgdp_d
+>                 P_B_M_USD_A_pctgdp_d
+>                 PGDP_IDX_d2log
+>                 PMI
+>                 PRMNTO01_IXOBSA_dlog
+>                 SLRTTO01_IXOBSA_dlog
+>                 SPASTT01_IXOB_dlog
+>                 STOCKRV
+>                 STOCKVOL_dlog
+>                 TERMSPR
+>                 TTRADE_RATIO_dlog
+>                 ULC_IDX_dlog
+>                 UNR_PC_d
+>                 VXO
+>                 WSCNDW01_IXOBSA_dlog
+>                 YIELDSPRUS
+>                 XGSV_ANNPCT_PC_dlog;
+
+.                                 *** RENAME VARIABLES ***;
+. rename CBD_USD* CA*;
+
+. rename CGV_ANNPCT_PC* CONSGOVT*;
+
+. rename CPV_ANNPCT_PC* CONSPRIV*;
+
+. rename ET_PER* EMPL*;
+
+. rename EXCH_USD* EXCHUSD*;
+
+. rename EXCHEB_IDX* EXCHEFF*;
+
+. rename GDPV_USD_USD* GDP*;
+
+. rename H_A_M_USD_A* CREDHH*;
+
+. rename P_A_M_USD_A* CREDCORP*;
+
+. rename P_B_M_USD_A* CREDCORPBNK*;
+
+. rename HRS_HOUR* HOURS*;
+
+. rename IRS_PC* INTRBNKRATE*;
+
+. rename ITV_ANNPCT_PC* INVESTM*;
+
+. rename MGSV_ANNPCT_PC* IMPORT*;
+
+. rename XGSV_ANNPCT_PC* EXPORT*;
+
+. rename N_628* HOUSEPRICE*;
+
+. rename ODCNPI03_IXOBSA* HOUSEPERMIT*;
+
+. rename PGDP_IDX* GDPDEF*;
+
+. rename PRMNTO01_IXOBSA* MANUF*;
+
+. rename SLRTTO01_IXOBSA* RETAIL*;
+
+. rename SPASTT01_IXOB* STOCKPRICE*;
+
+. rename TTRADE_RATIO* TERMTRADE*;
+
+. rename ULC_IDX* ULC*;
+
+. rename UNR_PC* UNRATE*;
+
+. rename WSCNDW01_IXOBSA* HOUSESTART*;
+
+. *** SAVE ***;
+. order *, alpha;
+
+. order geo geo_str time;
+
+. compress;
+  (0 bytes saved)
+
+. save output/data_export, replace;
+file output/data_export.dta saved
+
+. 
+end of do-file
+.  // Define variables and transform to stationarity;
+>         
+>         * Export data for each country;
+.         keep if tin(`sample_export');
+(1,722 observations deleted)
+.         levelsof geo_str, clean local(countries);
+AUS BEL CAN CHE DEU ESP FRA GBR ITA JPN NLD SWE USA
+.                 foreach c of local countries {;
+  2.                         disp as result "`c'";
+  3.                         preserve;
+  4.                                 * Sample;
+.                 qui: keep if geo_str == "`c'";
+  5.  // Keep only data for relevant country;
+>                 drop geo geo_str;
+  6.                 if "`sample_export_`c''" != "" {;
+  7.                         keep if tin(`sample_export_`c'');
+  8.  // Apply country-specific sample;
+>                 };
+  9.                                 * Drop variables with too many missing obs.;
+.                 local nobs = `=_N';
+ 10.                 qui: ds time, not;
+ 11.                 foreach v of varlist `r(varlist)' {;
+ 12.                         su `v', meanonly;
+ 13.                         if `=`r(N)'/`nobs'' < `obsfrac_export' {;
+ 14.                                 drop `v';
+ 15.                                 disp as text "Dropped `v'";
+ 16.                         };
+ 17.                 };
+ 18.                                 * Rename variables to drop transformation suffixes;
+.                 rename *_* *;
+ 19.                 rename *_* *;
+ 20.  // Do it again to get rid of all suffixes;
+>                 
+>                 * Export;
+.                 gen date = dofq(time);
+ 21.                 format date %td;
+ 22.                 drop time;
+ 23.                 order date;
+ 24.                 export delim using `dir_export'/`c'.csv, replace;
+ 25.                                 restore;
+ 26.                         };
+AUS
+Dropped ECONSENT
+Dropped PMI
+file output/csv/AUS.csv saved
+BEL
+Dropped PMI
+file output/csv/BEL.csv saved
+CAN
+Dropped CONSSENT
+Dropped ECONSENT
+Dropped HOURS_dlog
+Dropped PMI
+Dropped STOCKVOL_dlog
+file output/csv/CAN.csv saved
+CHE
+Dropped CONSSENT
+Dropped CREDHH_pctgdp_d
+Dropped ECONSENT
+Dropped HOUSEPERMIT_dlog
+Dropped HOUSESTART_dlog
+Dropped PMI
+file output/csv/CHE.csv saved
+DEU
+(45 observations deleted)
+Dropped CONSSENT
+Dropped ECONSENT
+Dropped HOUSESTART_dlog
+Dropped PMI
+file output/csv/DEU.csv saved
+ESP
+Dropped ECONSENT
+Dropped HOUSEPERMIT_dlog
+Dropped PMI
+Dropped RETAIL_dlog
+Dropped ULC_dlog
+file output/csv/ESP.csv saved
+FRA
+Dropped CONSSENT
+Dropped HOUSESTART_dlog
+Dropped PMI
+file output/csv/FRA.csv saved
+GBR
+Dropped PMI
+Dropped STOCKVOL_dlog
+file output/csv/GBR.csv saved
+ITA
+Dropped CONSSENT
+Dropped ECONSENT
+Dropped HOUSEPERMIT_dlog
+Dropped HOUSESTART_dlog
+Dropped PMI
+file output/csv/ITA.csv saved
+JPN
+Dropped ECONSENT
+Dropped HOUSEPERMIT_dlog
+Dropped PMI
+file output/csv/JPN.csv saved
+NLD
+Dropped HOUSEPERMIT_dlog
+Dropped HOUSESTART_dlog
+Dropped PMI
+Dropped STOCKVOL_dlog
+file output/csv/NLD.csv saved
+SWE
+Dropped CONSSENT
+Dropped HOUSEPERMIT_dlog
+Dropped PMI
+file output/csv/SWE.csv saved
+USA
+Dropped EXCHUSD_dlog
+Dropped HOUSEPERMIT_dlog
+Dropped YIELDSPRUS
+file output/csv/USA.csv saved
+.         };
+
+. log close;
+      name:  <unnamed>
+       log:  D:\Dropbox\research\Projects\SP20_BPEA\code\data\global\output/create_data.log
+  log type:  text
+ closed on:  20 Jan 2020, 18:35:02
+----------------------------------------------------------------------------------------------------------------

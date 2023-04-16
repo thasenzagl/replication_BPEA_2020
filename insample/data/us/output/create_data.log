@@ -1,0 +1,384 @@
+-----------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  D:\Dropbox\research\Projects\SP20_BPEA\code\data\us\output/create_data.log
+  log type:  text
+ opened on:  24 Jan 2020, 15:36:06
+
+. * Create U.S. data set;
+. * MPM 2019-12-17;
+. *** SETTINGS ***;
+. * Files;
+. local dat_global = "../global/output/global.dta";
+
+.  // Global database (for loading certain extra U.S. variables);
+> local file_export = "output/data_export.csv";
+
+.  // Export file;
+> 
+> * Variables to import from global database;
+. local global_vars = "COMMCRB ECONSENT CONSSENT PMI STOCKVOL";
+
+. local global_vars_dlog = "COMMCRB STOCKVOL";
+
+.  // Transform these to log differences;
+> 
+> * Export sample;
+. local export_sample = "1975q2,2019q2";
+
+. *** END SETTINGS ***;
+. *** CREATE FRED-QD DATA ***;
+. do create_fredqd;
+
+. # delimit ;
+delimiter now ;
+. * Create FRED-QD data set;
+. * MPM 2020-01-20;
+. *** SETTINGS ***;
+. * Files;
+. local file_fredqd = "fredqd/fredqd_20191216.csv";
+
+.  // FRED-QD data;
+> local file_fredqdser = "fredqd/fredqd_series.xlsx";
+
+.  // Selected FRED-QD series;
+> 
+> *** END SETTINGS ***;
+. *** LOAD DATA ***;
+. * Import data from CSV;
+. import delim using `file_fredqd', varnames(1) case(preserve);
+(249 vars, 245 obs)
+
+. rename * val_*;
+
+. rename val_sasdate date;
+
+. reshape long val_, i(date) j(fred_mnemonic) string;
+(note: j = A014RE1Q156NBEA A823RL1Q225SBEA AAA AAAFFM ACOGNOx AHETPIx AMBSLREAL AMDMNOx AMDMUOx ANDENOx AWHMAN AW
+> HNONAG AWOTMAN B020RE1Q156NBEA B021RE1Q156NBEA BAA BAA10YM BUSINVx BUSLOANSx CE16OV CES0600000007 CES0600000008
+>  CES2000000008x CES3000000008x CES9091000001 CES9092000001 CES9093000001 CIVPART CLAIMSx CMRMTSPLx CNCFx COMPAP
+> FF COMPRMS COMPRNFB CONSPIx CONSUMERx CP3M CPF3MTB3Mx CPIAPPSL CPIAUCSL CPILFESL CPIMEDSL CPITRNSL CPIULFSL CUM
+> FNS CUSR0000SA0L2 CUSR0000SA0L5 CUSR0000SAC CUSR0000SAD CUSR0000SAS CUSR0000SEHC DCLORG3Q086SBEA DDURRG3Q086SBE
+> A DFDHRG3Q086SBEA DFSARG3Q086SBEA DFXARG3Q086SBEA DGDSRG3Q086SBEA DGOERG3Q086SBEA DHCERG3Q086SBEA DHLCRG3Q086SB
+> EA DHUTRG3Q086SBEA DIFSRG3Q086SBEA DMANEMP DMOTRG3Q086SBEA DNDGRG3Q086SBEA DODGRG3Q086SBEA DONGRG3Q086SBEA DOTS
+> RG3Q086SBEA DPIC96 DRCARG3Q086SBEA DREQRG3Q086SBEA DRIWCIL DSERRG3Q086SBEA DTCOLNVHFNM DTCTHFNM DTRSRG3Q086SBEA
+>  EXCAUSx EXJPUSx EXPGSC1 EXSZUSx EXUSEU EXUSUKx FEDFUNDS FGRECPTx FPIx GCEC1 GDPC1 GDPCTPI GFDEBTNx GFDEGDQ188S
+>  GPDIC1 GPDICTPI GS1 GS10 GS10TB3Mx GS1TB3Mx GS5 HNOREMQ027Sx HOABS HOAMS HOANBS HOUST HOUST5F HOUSTMW HOUSTNE 
+> HOUSTS HOUSTW HWIURATIOx HWIx IMFSLx IMPGSC1 INDPRO INVCQRMTSPL INVEST IPB51110SQ IPB51220SQ IPB51222S IPBUSEQ 
+> IPCONGD IPDBS IPDCONGD IPDMAT IPFINAL IPFUELS IPMANSICS IPMAT IPNCONGD IPNMAT ISRATIOx LIABPIx LNS12032194 LNS1
+> 3023557 LNS13023569 LNS13023621 LNS13023705 LNS14000012 LNS14000025 LNS14000026 M1REAL M2REAL MANEMP MORTG10YRx
+>  MORTGAGE30US MZMREAL NASDAQCOM NDMANEMP NIKKEI225 NONBORRES NONREVSLx NWPIx OILPRICEx OPHMFG OPHNFB OPHPBS OUT
+> BS OUTMS OUTNFB PAYEMS PCDGx PCECC96 PCECTPI PCEPILFE PCESVx PCNDx PERMIT PERMITMW PERMITNE PERMITS PERMITW PNF
+> Ix PPIACO PPICMM PPIIDC PRFIx RCPHBS REALLNx REVOLSLx RSAFSx SLCEx SP500 SPCS10RSA SPCS20RSA SPPEratio SPdivyie
+> ld SPindust SRVPRD T5YFFM TABSHNOx TABSNNBx TARESAx TB3MS TB3SMFFM TB6M3Mx TB6MS TCU TFAABSHNOx TLBSHNOx TLBSNN
+> BBDIx TLBSNNBx TLBSNNCBBDIx TLBSNNCBx TNWBSHNOx TNWBSNNBBDIx TNWBSNNBx TNWMVBSNNCBBDIx TNWMVBSNNCBx TOTALSLx TO
+> TRESNS TTAABSNNCBx TWEXMMTH UEMP15T26 UEMP27OV UEMP5TO14 UEMPLT5 UEMPMEAN ULCBS ULCMFG ULCNFB UMCSENTx UNLPNBS 
+> UNRATE UNRATELTx UNRATESTx USCONS USEHS USEPUINDXM USFIRE USGOOD USGOVT USINFO USLAH USMINE USPBS USPRIV USSERV
+>  USSTHPI USTPU USTRADE USWTRADE VXOCLSx WPSFD4111 WPSFD49207 WPSFD49502 WPSID61 WPSID62 WPU0531 WPU0561 Y033RC1
+> Q027SBEAx)
+
+Data                               wide   ->   long
+-----------------------------------------------------------------------------
+Number of obs.                      245   ->   60760
+Number of variables                 249   ->       3
+j variable (248 values)                   ->   fred_mnemonic
+xij variables:
+val_A014RE1Q156NBEA val_A823RL1Q225SBEA ... val_Y033RC1Q027SBEAx->val_
+-----------------------------------------------------------------------------
+
+. save output/fredqd, replace;
+file output/fredqd.dta saved
+
+. * Import series;
+. import excel using `file_fredqdser', sheet("series") firstrow clear;
+
+. keep if use==1;
+(209 observations deleted)
+
+. merge 1:m fred_mnemonic using output/fredqd, nogen keep(match);
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                             9,555  
+    -----------------------------------------
+
+. *** CLEAN UP ***;
+. rename val_ val;
+
+. drop if missing(val);
+(255 observations deleted)
+
+. drop use;
+
+. replace sw_id = "" if sw_id == "n.a.";
+(949 real changes made)
+
+. gen time = qofd(date(date, "MDY"));
+(78 missing values generated)
+
+. format time %tq;
+
+. drop if missing(time);
+(78 observations deleted)
+
+. drop date;
+
+. rename (fred_mnemonic category) (fred_mnemonic_str category_str);
+
+. destring, replace;
+id already numeric; no replace
+sw_id: all characters numeric; replaced as int
+(941 missing values generated)
+tcode already numeric; no replace
+sw_factors already numeric; no replace
+fred_mnemonic_str: contains nonnumeric characters; no replace
+category_str: contains nonnumeric characters; no replace
+val already numeric; no replace
+time already numeric; no replace
+
+. xtset id time;
+       panel variable:  id (unbalanced)
+        time variable:  time, 1959q1 to 2019q3
+                delta:  1 quarter
+
+. *** MANUAL VARIABLE DEFINITIONS ***;
+. * Interest rates used to calculate spreads;
+. foreach v in FEDFUNDS TB3MS GS10 {;
+  2.         gen `v'_val = val if fred_mnemonic_str == "`v'";
+  3.         egen `v' = max(`v'_val), by(time);
+  4. };
+(8,979 missing values generated)
+(8,979 missing values generated)
+(8,979 missing values generated)
+
+. * Transform TB3MS to spread;
+. replace val = val - FEDFUNDS if fred_mnemonic_str == "TB3MS";
+(243 real changes made)
+
+. replace tc = 1 if fred_mnemonic_str == "TB3MS";
+(243 real changes made)
+
+. replace fred_mnemonic_str = "TB3MSFEDFUNDSx" if fred_mnemonic_str == "TB3MS";
+(243 real changes made)
+
+. * Transform GS10 to spread;
+. replace val = val - TB3MS if fred_mnemonic_str == "GS10";
+(243 real changes made)
+
+. replace tc = 1 if fred_mnemonic_str == "GS10";
+(243 real changes made)
+
+. replace fred_mnemonic_str = "GS10TB3MSx" if fred_mnemonic_str == "GS10";
+(243 real changes made)
+
+. * Transform AAA & BAA to spreads;
+. foreach v in AAA BAA {;
+  2.         replace val = val - GS10 if fred_mnemonic_str == "`v'";
+  3.         replace tc = 1 if fred_mnemonic_str == "`v'";
+  4.         replace fred_mnemonic_str = "`v'GS10x" if fred_mnemonic_str == "`v'";
+  5. };
+(243 real changes made)
+(243 real changes made)
+(243 real changes made)
+(243 real changes made)
+(243 real changes made)
+(243 real changes made)
+
+. drop FEDFUNDS TB3MS GS10;
+
+. *** TRANSFORM TO STATIONARITY ***;
+. gen valt = val if tc == 1;
+(7,567 missing values generated)
+
+. replace valt = D.val if tc == 2;
+(939 real changes made)
+
+. replace valt = D2.val if tc == 3;
+(0 real changes made)
+
+. replace valt = 100*log(val) if tc == 4;
+(0 real changes made)
+
+. replace valt = 100*(log(val)-log(L.val)) if tc == 5;
+(6,354 real changes made)
+
+. replace valt = 100*((log(val)-log(L.val))-(log(L.val)-log(L2.val))) if tc == 6;
+(241 real changes made)
+
+. replace valt = 100*(val/L.val-1) if tc == 7;
+(0 real changes made)
+
+. * Save;
+. encode fred_mnemonic_str, gen(fred_mnemonic);
+
+. encode category_str, gen(category);
+
+. order fred_mnemonic category time;
+
+. compress;
+  variable fred_mnemonic was long now byte
+  variable category was long now byte
+  variable time was float now int
+  variable fred_mnemonic_str was str16 now str14
+  (92,220 bytes saved)
+
+. save output/fredqd, replace;
+file output/fredqd.dta saved
+
+. 
+end of do-file
+
+. *** COMBINE WITH U.S. DATA FROM GLOBAL DATABASE ***;
+. * Reshape FRED-QD data;
+. use output/fredqd;
+
+. keep time fred_mnemonic_str valt;
+
+. reshape wide valt, i(time) j(fred_mnemonic_str) string;
+(note: j = AAAGS10x AHETPIx AMDMNOx AMDMUOx BAAGS10x BUSLOANSx CONSUMERx CPF3MTB3Mx DPIC96 EXPGSC1 FEDFUNDS GCEC1
+>  GDPC1 GFDEGDQ188S GPDIC1 GS10TB3MSx HOANBS HOUST IMPGSC1 INDPRO INVCQRMTSPL PAYEMS PCECC96 PCEPILFE PERMIT RSA
+> FSx SP500 SPdivyield TB3MSFEDFUNDSx TCU TLBSHNOx TLBSNNCBx TNWBSHNOx TNWMVBSNNCBx TWEXMMTH ULCNFB UNRATE USSTHP
+> I VXOCLSx)
+
+Data                               long   ->   wide
+-----------------------------------------------------------------------------
+Number of obs.                     9222   ->     243
+Number of variables                   3   ->      40
+j variable (39 values)fred_mnemonic_str   ->   (dropped)
+xij variables:
+                                   valt   ->   valtAAAGS10x valtAHETPIx ... valtVXOCLSx
+-----------------------------------------------------------------------------
+
+. rename valt* *;
+
+. * Load data from global database;
+. gen geo_str = "USA";
+
+. merge 1:1 time geo_str using `dat_global', nogen keepusing(`global_vars') keep(match master);
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                               243  
+    -----------------------------------------
+
+. drop geo_str;
+
+. tsset time;
+        time variable:  time, 1959q1 to 2019q3
+                delta:  1 quarter
+
+. * Transform to log growth rates;
+. foreach v of varlist `global_vars_dlog' {;
+  2.         gen `v'_dlog = log(`v'/L.`v');
+  3.         drop `v';
+  4.         rename `v'_dlog `v';
+  5. };
+(1 missing value generated)
+(1 missing value generated)
+
+. *** RENAME VARIABLES ***;
+. rename ?AAGS10x ?AASPR;
+
+. rename AHETPIx EARNINGS;
+
+. rename AMDMNOx ORDERNEW;
+
+. rename AMDMUOx ORDERUNFIL;
+
+. rename BUSLOANSx LOANSCORP;
+
+. rename CONSUMERx LOANSHH;
+
+. rename CPF3MTB3Mx CPAPERSPR;
+
+. rename DPIC96 DISPINC;
+
+. rename EXPGSC1 EXPORT;
+
+. rename GCEC1 CONSGOVT;
+
+. rename GDPC1 GDP;
+
+. rename GFDEGDQ188S DEBTGOVT;
+
+. rename GPDIC1 INVESTM;
+
+. rename GS10TB3MSx TERMSPR;
+
+. rename HOANBS HOURS;
+
+. rename HOUST HOUSESTART;
+
+. rename IMPGSC1 IMPORT;
+
+. rename INVCQRMTSPL INVENTO;
+
+. rename PAYEMS EMPL;
+
+. rename PCECC96 CONSPRIV;
+
+. rename PCEPILFE PCEPRICE;
+
+. rename PERMIT HOUSEPERMIT;
+
+. rename RSAFSx RETAIL;
+
+. rename SP500 STOCKPRICE;
+
+. rename SPdivyield DIVYIELD;
+
+. rename TB3MSFEDFUNDSx SHORTSPR;
+
+. rename TCU CAPUTIL;
+
+. rename TLBSHNOx LIABHH;
+
+. rename TLBSNNCBx LIABCORP;
+
+. rename TNWBSHNOx NWHH;
+
+. rename TNWMVBSNNCBx NWCORP;
+
+. rename TWEXMMTH EXCHTRW;
+
+. rename ULCNFB ULC;
+
+. rename USSTHPI HOUSEPRICE;
+
+. rename VXOCLSx VXO;
+
+. * Save combined data;
+. keep if tin(`export_sample');
+(66 observations deleted)
+
+. compress;
+  (0 bytes saved)
+
+. save output/data_export, replace;
+file output/data_export.dta saved
+
+. *** EXPORT ***;
+. gen date = dofq(time);
+
+. format date %td;
+
+. order *, alpha;
+
+. order date;
+
+. xtset, clear;
+
+. drop time;
+
+. export delim `file_export', replace;
+file output/data_export.csv saved
+
+. use output/data_export, clear;
+
+. log close;
+      name:  <unnamed>
+       log:  D:\Dropbox\research\Projects\SP20_BPEA\code\data\us\output/create_data.log
+  log type:  text
+ closed on:  24 Jan 2020, 15:36:08
+-----------------------------------------------------------------------------------------------------------------
